@@ -71,6 +71,12 @@ func Get() Logger {
 	return log
 }
 
+func NewChild(args ...interface{}) Logger {
+	// Get parent logger
+	logger := Get()
+	return logger.NewChild(args)
+}
+
 // Register a logger implementation instance
 func Register(l Logger) {
 	// If logger is nil, return error

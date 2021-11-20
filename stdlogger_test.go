@@ -146,7 +146,7 @@ func TestRegisterEmptyLogger(t *testing.T) {
 		if r := recover(); r == nil {
 			t.Errorf("The code did not panic")
 		} else {
-			t.Log("Registering nil Logger is expected to panic")
+			t.Logf("Registering nil Logger is expected to panic. Error = %+v", r)
 		}
 	}()
 
@@ -161,6 +161,6 @@ func TestChildLogger(t *testing.T) {
 	childLogger1 := testLogger.NewChild(WithNamespace("child"))
 	childLogger1.Debug("this is called from child logger with namespace")
 
-	childLogger2 := testLogger.NewChild()
+	childLogger2 := NewChild()
 	childLogger2.Debug("this is called from child logger without namespace")
 }
