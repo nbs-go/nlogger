@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.2.0
+
+- [ADDED] Add NewChild function
+
 ## v1.1.0
 
 - [ADDED] Add NewChild implementation in StdLogger
