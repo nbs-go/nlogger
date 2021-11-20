@@ -1,27 +1,25 @@
 package nlogger
 
 type Options struct {
-	metadata map[string]interface{}
-	err      error
-	fmtArgs  []interface{}
+	metadata  map[string]interface{}
+	err       error
+	fmtArgs   []interface{}
+	namespace string
 }
 
 var defaultOptions = &Options{
-	metadata: nil,
-	err:      nil,
-	fmtArgs:  nil,
+	metadata:  nil,
+	err:       nil,
+	fmtArgs:   nil,
+	namespace: "",
 }
 
 type SetOptionFn = func(*Options)
 
-func evaluateOptions(opts []interface{}) *Options {
-	if len(opts) == 0 {
-		return nil
-	}
-
+func evaluateOptions(args []interface{}) *Options {
 	optCopy := &Options{}
 	*optCopy = *defaultOptions
-	for _, v := range opts {
+	for _, v := range args {
 		fn, ok := v.(SetOptionFn)
 		if !ok {
 			// Skipping
@@ -56,5 +54,11 @@ func Format(args ...interface{}) SetOptionFn {
 func Error(err error) SetOptionFn {
 	return func(o *Options) {
 		o.err = err
+	}
+}
+
+func WithNamespace(n string) SetOptionFn {
+	return func(o *Options) {
+		o.namespace = n
 	}
 }

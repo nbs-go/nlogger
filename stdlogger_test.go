@@ -153,3 +153,14 @@ func TestRegisterEmptyLogger(t *testing.T) {
 	// The following is the code under test
 	Register(nil)
 }
+
+func TestChildLogger(t *testing.T) {
+	testLogger := NewStdLogger(LevelDebug, nil, "parent", stdLog.LstdFlags)
+	testLogger.Debug("this is called from parent logger")
+
+	childLogger1 := testLogger.NewChild(WithNamespace("child"))
+	childLogger1.Debug("this is called from child logger with namespace")
+
+	childLogger2 := testLogger.NewChild()
+	childLogger2.Debug("this is called from child logger without namespace")
+}

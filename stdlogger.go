@@ -14,6 +14,9 @@ type StdLogger struct {
 	levelPrefix map[LogLevel]string
 	skipTrace   int
 	writer      *stdLog.Logger
+	ioWriter    io.Writer
+	namespace   string
+	flags       int
 }
 
 func (l StdLogger) Fatal(msg string, args ...interface{}) {
@@ -66,14 +69,29 @@ func (l *StdLogger) Debugf(format string, args ...interface{}) {
 	})
 }
 
-func NewStdLogger(level LogLevel, w io.Writer, prefix string, flags int) Logger {
+func (l *StdLogger) NewChild(args ...interface{}) Logger {
+	options := evaluateOptions(args)
+
+	// Override namespace if option is set
+	var n string
+	if options.namespace != "" {
+		n = options.namespace
+	} else {
+		n = l.namespace
+	}
+
+	return NewStdLogger(l.level, l.ioWriter, n, l.flags)
+}
+
+func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int) Logger {
 	// If writer is nil, set default writer to Stdout
 	if w == nil {
 		w = os.Stdout
 	}
 
-	if prefix != "" {
-		prefix = fmt.Sprintf("(%s) ", prefix)
+	var prefix string
+	if namespace != "" {
+		prefix = fmt.Sprintf("(%s) ", namespace)
 	}
 
 	// Init standard logger instance
@@ -88,6 +106,8 @@ func NewStdLogger(level LogLevel, w io.Writer, prefix string, flags int) Logger 
 		},
 		skipTrace: 2,
 		writer:    stdLog.New(w, prefix, flags),
+		ioWriter:  w,
+		namespace: namespace,
 	}
 	return &l
 }
@@ -102,36 +122,30 @@ func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
 	prefix := l.levelPrefix[outLevel]
 
 	// If options is existed
-	if options != nil {
-		// If formatted arguments is available, then print as formatted
-		if len(options.fmtArgs) > 0 {
-			l.writer.Printf(prefix+msg+"\n", options.fmtArgs...)
-		} else {
-			l.writer.Printf("%s%s\n", prefix, msg)
-		}
-
-		// If error exists, then print error and its trace
-		if options.err != nil && outLevel <= LevelError {
-			filePath, line := Trace(l.skipTrace)
-			l.writer.Printf("  > Error: %s\n", options.err)
-			l.writer.Printf("  > Trace: %s:%d\n", filePath, line)
-			// Print cause
-			if unErr := errors.Unwrap(options.err); unErr != nil {
-				l.writer.Printf("  > ErrorCause: %s\n", unErr)
-			}
-		}
-
-		if options.metadata != nil && len(options.metadata) > 0 {
-			// Serialize to json
-			metadata, err := json.Marshal(options.metadata)
-			// If not error, then print
-			if err == nil {
-				l.writer.Printf("  > metadata: %s\n", metadata)
-			}
-		}
-
-		return
+	// If formatted arguments is available, then print as formatted
+	if len(options.fmtArgs) > 0 {
+		l.writer.Printf(prefix+msg+"\n", options.fmtArgs...)
+	} else {
+		l.writer.Printf("%s%s\n", prefix, msg)
 	}
 
-	l.writer.Printf("%s%s\n", prefix, msg)
+	// If error exists, then print error and its trace
+	if options.err != nil && outLevel <= LevelError {
+		filePath, line := Trace(l.skipTrace)
+		l.writer.Printf("  > Error: %s\n", options.err)
+		l.writer.Printf("  > Trace: %s:%d\n", filePath, line)
+		// Print cause
+		if unErr := errors.Unwrap(options.err); unErr != nil {
+			l.writer.Printf("  > ErrorCause: %s\n", unErr)
+		}
+	}
+
+	if options.metadata != nil && len(options.metadata) > 0 {
+		// Serialize to json
+		metadata, err := json.Marshal(options.metadata)
+		// If not error, then print
+		if err == nil {
+			l.writer.Printf("  > metadata: %s\n", metadata)
+		}
+	}
 }
