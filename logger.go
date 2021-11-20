@@ -40,6 +40,10 @@ type Logger interface {
 
 	// Debugf must write a formatted message in DEBUG level.
 	Debugf(format string, args ...interface{})
+
+	// NewChild must create a child logger and inherit level, writer and other flags
+	// only option such as namespace could be overridden
+	NewChild(args ...interface{}) Logger
 }
 
 // log is a singleton logger instance
