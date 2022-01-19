@@ -66,6 +66,11 @@ func (o *Options) GetTime(k string) (time.Time, bool) {
 	return t, ok
 }
 
+func (o *Options) HasContext() bool {
+	_, ok := o.KV[ContextKey]
+	return ok
+}
+
 func (o *Options) GetContext() context.Context {
 	v, ok := o.KV[ContextKey]
 	if !ok {

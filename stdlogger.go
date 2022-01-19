@@ -1,6 +1,7 @@
 package nlogger
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,6 +9,16 @@ import (
 	stdLog "log"
 	"os"
 )
+
+var stdLevelPrefix = map[LogLevel]string{
+	LevelFatal: "[FATAL] ",
+	LevelError: "[ERROR] ",
+	LevelWarn:  " [WARN] ",
+	LevelInfo:  " [INFO] ",
+	LevelDebug: "[DEBUG] ",
+}
+
+type StdPrinterFn func(writer *stdLog.Logger, level LogLevel, msg string, options *Options, skipTrace int)
 
 type StdLogger struct {
 	level       LogLevel
@@ -17,6 +28,8 @@ type StdLogger struct {
 	ioWriter    io.Writer
 	namespace   string
 	flags       int
+	ctx         context.Context
+	printerFn   StdPrinterFn
 }
 
 func (l StdLogger) Fatal(msg string, args ...interface{}) {
@@ -68,10 +81,40 @@ func (l *StdLogger) NewChild(args ...interface{}) Logger {
 		n = l.namespace
 	}
 
-	return NewStdLogger(l.level, l.ioWriter, n, l.flags)
+	// Init logger
+	cl := NewStdLogger(l.level, l.ioWriter, n, l.flags)
+
+	// Set context if available
+	ctx := options.GetContext()
+	if ctx != nil {
+		cl.ctx = ctx
+	}
+
+	return cl
 }
 
-func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int) Logger {
+func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
+	// if output level is greater than log level, don't print
+	if outLevel > l.level {
+		return
+	}
+
+	var fn StdPrinterFn
+	if l.printerFn != nil {
+		fn = l.printerFn
+	} else {
+		fn = stdPrint
+	}
+
+	// Inject context if not set
+	if l.ctx != nil && !options.HasContext() {
+		options.KV[ContextKey] = l.ctx
+	}
+
+	fn(l.writer, outLevel, msg, options, l.skipTrace)
+}
+
+func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int, args ...interface{}) *StdLogger {
 	// If writer is nil, set default writer to Stdout
 	if w == nil {
 		w = os.Stdout
@@ -84,49 +127,55 @@ func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int) Logg
 
 	// Init standard logger instance
 	l := StdLogger{
-		level: level,
-		levelPrefix: map[LogLevel]string{
-			LevelFatal: "[FATAL] ",
-			LevelError: "[ERROR] ",
-			LevelWarn:  " [WARN] ",
-			LevelInfo:  " [INFO] ",
-			LevelDebug: "[DEBUG] ",
-		},
+		level:     level,
 		skipTrace: 2,
 		writer:    stdLog.New(w, prefix, flags),
 		ioWriter:  w,
 		namespace: namespace,
 	}
+
+	// Set optional arguments
+	if len(args) > 0 {
+		fn := args[0].(StdPrinterFn)
+		l.printerFn = fn
+	}
+
 	return &l
 }
 
-func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
-	// if output level is greater than log level, don't print
-	if outLevel > l.level {
-		return
-	}
-
+func stdPrint(writer *stdLog.Logger, level LogLevel, msg string, options *Options, skipTrace int) {
 	// Generate prefix
-	prefix := l.levelPrefix[outLevel]
+	prefix := stdLevelPrefix[level]
 
 	// If options is existed
 	// If formatted arguments is available, then print as formatted
-	fmtArgs := options.GetFmtArgs()
+	fmtArgs := options.FmtArgs
 	if len(fmtArgs) > 0 {
-		l.writer.Printf(prefix+msg+"\n", fmtArgs...)
+		writer.Printf(prefix+msg+"\n", fmtArgs...)
 	} else {
-		l.writer.Printf("%s%s\n", prefix, msg)
+		writer.Printf("%s%s\n", prefix, msg)
+	}
+
+	// Get context
+	ctx := options.GetContext()
+	if ctx != nil {
+		// Get request id
+		v := ctx.Value(RequestIdKey)
+		reqId, ok := v.(string)
+		if ok {
+			writer.Printf("  > Request ID: %s\n", reqId)
+		}
 	}
 
 	// If error exists, then print error and its trace
 	logErr := options.GetError()
-	if logErr != nil && outLevel <= LevelError {
-		filePath, line := Trace(l.skipTrace)
-		l.writer.Printf("  > Error: %s\n", logErr)
-		l.writer.Printf("  > Trace: %s:%d\n", filePath, line)
-		// Print caus
+	if logErr != nil && level <= LevelError {
+		filePath, line := Trace(skipTrace)
+		writer.Printf("  > Error: %s\n", logErr)
+		writer.Printf("  > Trace: %s:%d\n", filePath, line)
+		// Print cause
 		if unErr := errors.Unwrap(logErr); unErr != nil {
-			l.writer.Printf("  > ErrorCause: %s\n", unErr)
+			writer.Printf("  > ErrorCause: %s\n", unErr)
 		}
 	}
 
@@ -136,7 +185,7 @@ func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
 		metadata, err := json.Marshal(meta)
 		// If not error, then print
 		if err == nil {
-			l.writer.Printf("  > metadata: %s\n", metadata)
+			writer.Printf("  > Metadata: %s\n", metadata)
 		}
 	}
 }

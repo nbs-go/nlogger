@@ -31,4 +31,5 @@ const (
 	FormatArgsKey = "fmtArgs"
 	NamespaceKey  = "namespace"
 	ContextKey    = "ctx"
+	RequestIdKey  = "requestId"
 )

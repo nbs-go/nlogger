@@ -2,6 +2,7 @@ package nlogger
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	stdLog "log"
@@ -165,6 +166,11 @@ func TestChildLogger(t *testing.T) {
 
 	childLogger2 := NewChild()
 	childLogger2.Debug("this is called from child logger without namespace")
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, RequestIdKey, "b0a495f4-f919-4fc0-b3e2-95f83d0c4a04")
+	ctxLogger := testLogger.NewChild(Context(ctx))
+	ctxLogger.Debugf("this log must contains request id")
 }
 
 func TestEvaluateOptions(t *testing.T) {
@@ -247,5 +253,31 @@ func TestCustomOptions(t *testing.T) {
 	ctx := o.GetContext()
 	if ctx != nil {
 		t.Errorf("Unexpected value. context Value is supposed not to be set")
+	}
+}
+
+func TestCustomPrinter(t *testing.T) {
+	testLogger := NewStdLogger(LevelDebug, nil, "", 0, newCustomPrinter())
+	testLogger.Debug("This message is printed in json")
+}
+
+func newCustomPrinter() StdPrinterFn {
+	return func(writer *stdLog.Logger, outLevel LogLevel, msg string, options *Options, skipTrace int) {
+		// Init json body
+		jsonBody := map[string]interface{}{
+			"timestamp": time.Now().Format(time.RFC3339),
+			"level":     outLevel,
+		}
+
+		// Compose message
+		if len(options.FmtArgs) > 0 {
+			jsonBody["message"] = fmt.Sprintf(msg, options.FmtArgs...)
+		} else {
+			jsonBody["message"] = msg
+		}
+
+		// Compose json string
+		jsonStr, _ := json.Marshal(jsonBody)
+		writer.Printf("%s\n", jsonStr)
 	}
 }
