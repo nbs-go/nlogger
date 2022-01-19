@@ -8,6 +8,7 @@ import (
 type Options struct {
 	KV       map[string]interface{}
 	Metadata map[string]interface{}
+	FmtArgs  []interface{}
 }
 
 type SetOptionFn = func(*Options)
@@ -73,15 +74,6 @@ func (o *Options) GetContext() context.Context {
 	return v.(context.Context)
 }
 
-func (o *Options) GetFmtArgs() []interface{} {
-	v, ok := o.KV[FormatArgsKey]
-	if !ok {
-		return nil
-	}
-
-	return v.([]interface{})
-}
-
 func (o *Options) GetError() error {
 	v, ok := o.KV[ErrorKey]
 	if !ok {
@@ -123,7 +115,7 @@ func Metadata(m map[string]interface{}) SetOptionFn {
 
 func Format(args ...interface{}) SetOptionFn {
 	return func(o *Options) {
-		o.KV[FormatArgsKey] = args
+		o.FmtArgs = args
 	}
 }
 
