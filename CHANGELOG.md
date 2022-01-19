@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.4.1
+
+- [ADDED] Add context aware logger child and custom print formatter
+- [FIXED] Fix formatted args option evaluation
+
 ## v1.3.0
 
 - [CHANGED] Change Options type to `map[string]interface{}` for re-usability
