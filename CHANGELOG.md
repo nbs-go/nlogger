@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.3.0
+
+- [CHANGED] Change Options type to `map[string]interface{}` for re-usability
+
 ## v1.2.0
 
 - [ADDED] Add NewChild function
