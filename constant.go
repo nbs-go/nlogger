@@ -24,3 +24,11 @@ const (
 
 	DefaultLevel = LevelError
 )
+
+// Option keys constants
+const (
+	ErrorKey      = "error"
+	FormatArgsKey = "fmtArgs"
+	NamespaceKey  = "namespace"
+	ContextKey    = "ctx"
+)

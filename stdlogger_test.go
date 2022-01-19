@@ -1,11 +1,13 @@
 package nlogger
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	stdLog "log"
 	"os"
 	"testing"
+	"time"
 )
 
 // Init sample variables
@@ -163,4 +165,87 @@ func TestChildLogger(t *testing.T) {
 
 	childLogger2 := NewChild()
 	childLogger2.Debug("this is called from child logger without namespace")
+}
+
+func TestEvaluateOptions(t *testing.T) {
+	// Evaluate context argument
+	args := []interface{}{
+		Context(context.Background()),
+		AddMetadata("testInt64", 1),
+	}
+	o := EvaluateOptions(args)
+
+	// Get context
+	ctx := o.GetContext()
+	if ctx == nil {
+		t.Error("Context is not evaluated")
+	} else {
+		t.Log("Context is evaluated and set to options")
+	}
+}
+
+func TestCustomOptions(t *testing.T) {
+	dt := time.Now()
+	o := &Options{
+		KV: map[string]interface{}{
+			"testInt64":  int64(99),
+			"testInt":    98,
+			"testString": "Hello",
+			"testTime":   dt,
+		},
+	}
+
+	// Check string
+	str, ok := o.GetString("testString")
+	if !ok || str != "Hello" {
+		t.Errorf("Unexpected str value from option. Got value = %s", str)
+	}
+
+	// Check int
+	i, ok := o.GetInt("testInt")
+	if !ok || i != 98 {
+		t.Errorf("Unexpected int64 value from option. Got value = %d", i)
+	}
+
+	// Check int64
+	i64, ok := o.GetInt64("testInt64")
+	if !ok || i64 != 99 {
+		t.Errorf("Unexpected int64 value from option. Got value = %d", i)
+	}
+
+	// Check time
+	dtt, ok := o.GetTime("testTime")
+	if !ok || dtt.Unix() != dt.Unix() {
+		t.Errorf("Unexpected int64 value from option. Got value = %s", dtt)
+	}
+
+	// Get empty int
+	_, ok = o.GetInt("noInt")
+	if ok {
+		t.Errorf("Unexpected value. int Value is supposed not to be set")
+	}
+
+	// Get empty int64
+	_, ok = o.GetInt64("noInt64")
+	if ok {
+		t.Errorf("Unexpected value. int64 Value is supposed not to be set")
+	}
+
+	// Get empty string
+	_, ok = o.GetString("noString")
+	if ok {
+		t.Errorf("Unexpected value. string Value is supposed not to be set")
+	}
+
+	// Get empty time
+	_, ok = o.GetTime("noTime")
+	if ok {
+		t.Errorf("Unexpected value. time.Time Value is supposed not to be set")
+	}
+
+	// Get empty context
+	ctx := o.GetContext()
+	if ctx != nil {
+		t.Errorf("Unexpected value. context Value is supposed not to be set")
+	}
 }
