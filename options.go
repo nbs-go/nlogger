@@ -21,9 +21,8 @@ func NewOptions() *Options {
 
 func NewFormatOptions(args ...interface{}) *Options {
 	return &Options{
-		KV: map[string]interface{}{
-			FormatArgsKey: args,
-		},
+		KV:      make(map[string]interface{}),
+		FmtArgs: args,
 	}
 }
 

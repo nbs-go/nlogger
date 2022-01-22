@@ -27,9 +27,8 @@ const (
 
 // Option keys constants
 const (
-	ErrorKey      = "error"
-	FormatArgsKey = "fmtArgs"
-	NamespaceKey  = "namespace"
-	ContextKey    = "ctx"
-	RequestIdKey  = "requestId"
+	ErrorKey     = "error"
+	NamespaceKey = "namespace"
+	ContextKey   = "ctx"
+	RequestIdKey = "requestId"
 )
