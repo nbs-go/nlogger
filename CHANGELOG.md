@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.4.2
+
+- [FIXED] Fix formatted args logging
+
 ## v1.4.1
 
 - [ADDED] Add context aware logger child and custom print formatter
