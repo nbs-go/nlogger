@@ -37,7 +37,7 @@ func (l StdLogger) Fatal(msg string, args ...interface{}) {
 }
 
 func (l StdLogger) Fatalf(format string, args ...interface{}) {
-	l.print(LevelFatal, format, NewFormatOptions(args))
+	l.print(LevelFatal, format, NewFormatOptions(args...))
 }
 
 func (l StdLogger) Error(msg string, args ...interface{}) {
@@ -45,7 +45,7 @@ func (l StdLogger) Error(msg string, args ...interface{}) {
 }
 
 func (l StdLogger) Errorf(format string, args ...interface{}) {
-	l.print(LevelError, format, NewFormatOptions(args))
+	l.print(LevelError, format, NewFormatOptions(args...))
 }
 
 func (l StdLogger) Warn(msg string, args ...interface{}) {
@@ -53,7 +53,7 @@ func (l StdLogger) Warn(msg string, args ...interface{}) {
 }
 
 func (l StdLogger) Warnf(format string, args ...interface{}) {
-	l.print(LevelWarn, format, NewFormatOptions(args))
+	l.print(LevelWarn, format, NewFormatOptions(args...))
 }
 
 func (l StdLogger) Info(msg string, args ...interface{}) {
@@ -61,7 +61,7 @@ func (l StdLogger) Info(msg string, args ...interface{}) {
 }
 
 func (l StdLogger) Infof(format string, args ...interface{}) {
-	l.print(LevelInfo, format, NewFormatOptions(args))
+	l.print(LevelInfo, format, NewFormatOptions(args...))
 }
 
 func (l *StdLogger) Debug(msg string, args ...interface{}) {
@@ -69,7 +69,7 @@ func (l *StdLogger) Debug(msg string, args ...interface{}) {
 }
 
 func (l *StdLogger) Debugf(format string, args ...interface{}) {
-	l.print(LevelDebug, format, NewFormatOptions(args))
+	l.print(LevelDebug, format, NewFormatOptions(args...))
 }
 
 func (l *StdLogger) NewChild(args ...interface{}) Logger {
