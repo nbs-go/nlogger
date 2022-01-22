@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.4.3
+
+- [FIXED] Fix FormatArgs option evaluation
+
 ## v1.4.2
 
 - [FIXED] Fix formatted args logging
