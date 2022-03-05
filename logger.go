@@ -12,38 +12,38 @@ import (
 // Logger contract defines methods that must be available for a Logger.
 type Logger interface {
 	// Fatal must write an error, message that explaining the error and where it's occurred in FATAL level.
-	Fatal(msg string, options ...interface{})
+	Fatal(msg string, options ...OptionSetterFunc)
 
 	// Fatalf must write a formatted message and where it's occurred in FATAL level.
 	Fatalf(format string, args ...interface{})
 
 	// Error must write an error, message that explaining the error and where it's occurred in ERROR level.
-	Error(msg string, options ...interface{})
+	Error(msg string, options ...OptionSetterFunc)
 
 	// Errorf must write a formatted message and where it's occurred in ERROR level.
 	Errorf(format string, args ...interface{})
 
 	// Warn must write a message in WARN level.
-	Warn(msg string, options ...interface{})
+	Warn(msg string, options ...OptionSetterFunc)
 
 	// Warnf must write a formatted message in WARN level.
 	Warnf(format string, args ...interface{})
 
 	// Info must write a message in INFO level.
-	Info(msg string, options ...interface{})
+	Info(msg string, options ...OptionSetterFunc)
 
 	// Infof must write a formatted message in INFO level.
 	Infof(format string, args ...interface{})
 
 	// Debug must write a message in DEBUG level.
-	Debug(msg string, options ...interface{})
+	Debug(msg string, options ...OptionSetterFunc)
 
 	// Debugf must write a formatted message in DEBUG level.
 	Debugf(format string, args ...interface{})
 
 	// NewChild must create a child logger and inherit level, writer and other flags
 	// only option such as namespace could be overridden
-	NewChild(args ...interface{}) Logger
+	NewChild(args ...OptionSetterFunc) Logger
 }
 
 // log is a singleton logger instance
@@ -71,10 +71,10 @@ func Get() Logger {
 	return log
 }
 
-func NewChild(args ...interface{}) Logger {
+func NewChild(args ...OptionSetterFunc) Logger {
 	// Get parent logger
 	logger := Get()
-	return logger.NewChild(args)
+	return logger.NewChild(args...)
 }
 
 // Register a logger implementation instance
