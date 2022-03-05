@@ -18,7 +18,7 @@ var stdLevelPrefix = map[LogLevel]string{
 	LevelDebug: "[DEBUG] ",
 }
 
-type StdPrinterFn func(writer *stdLog.Logger, level LogLevel, msg string, options *Options, skipTrace int)
+type StdPrinterFunc func(writer *stdLog.Logger, level LogLevel, msg string, options *Options, skipTrace int)
 
 type StdLogger struct {
 	level       LogLevel
@@ -29,10 +29,10 @@ type StdLogger struct {
 	namespace   string
 	flags       int
 	ctx         context.Context
-	printerFn   StdPrinterFn
+	printerFn   StdPrinterFunc
 }
 
-func (l StdLogger) Fatal(msg string, args ...interface{}) {
+func (l StdLogger) Fatal(msg string, args ...OptionSetterFunc) {
 	l.print(LevelFatal, msg, EvaluateOptions(args))
 }
 
@@ -40,7 +40,7 @@ func (l StdLogger) Fatalf(format string, args ...interface{}) {
 	l.print(LevelFatal, format, NewFormatOptions(args...))
 }
 
-func (l StdLogger) Error(msg string, args ...interface{}) {
+func (l StdLogger) Error(msg string, args ...OptionSetterFunc) {
 	l.print(LevelError, msg, EvaluateOptions(args))
 }
 
@@ -48,7 +48,7 @@ func (l StdLogger) Errorf(format string, args ...interface{}) {
 	l.print(LevelError, format, NewFormatOptions(args...))
 }
 
-func (l StdLogger) Warn(msg string, args ...interface{}) {
+func (l StdLogger) Warn(msg string, args ...OptionSetterFunc) {
 	l.print(LevelWarn, msg, EvaluateOptions(args))
 }
 
@@ -56,7 +56,7 @@ func (l StdLogger) Warnf(format string, args ...interface{}) {
 	l.print(LevelWarn, format, NewFormatOptions(args...))
 }
 
-func (l StdLogger) Info(msg string, args ...interface{}) {
+func (l StdLogger) Info(msg string, args ...OptionSetterFunc) {
 	l.print(LevelInfo, msg, EvaluateOptions(args))
 }
 
@@ -64,7 +64,7 @@ func (l StdLogger) Infof(format string, args ...interface{}) {
 	l.print(LevelInfo, format, NewFormatOptions(args...))
 }
 
-func (l *StdLogger) Debug(msg string, args ...interface{}) {
+func (l *StdLogger) Debug(msg string, args ...OptionSetterFunc) {
 	l.print(LevelDebug, msg, EvaluateOptions(args))
 }
 
@@ -72,7 +72,7 @@ func (l *StdLogger) Debugf(format string, args ...interface{}) {
 	l.print(LevelDebug, format, NewFormatOptions(args...))
 }
 
-func (l *StdLogger) NewChild(args ...interface{}) Logger {
+func (l *StdLogger) NewChild(args ...OptionSetterFunc) Logger {
 	options := EvaluateOptions(args)
 
 	// Override namespace if option is set
@@ -99,7 +99,7 @@ func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
 		return
 	}
 
-	var fn StdPrinterFn
+	var fn StdPrinterFunc
 	if l.printerFn != nil {
 		fn = l.printerFn
 	} else {
@@ -108,7 +108,7 @@ func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
 
 	// Inject context if not set
 	if l.ctx != nil && !options.HasContext() {
-		options.KV[ContextKey] = l.ctx
+		options.Values[ContextKey] = l.ctx
 	}
 
 	fn(l.writer, outLevel, msg, options, l.skipTrace)
@@ -136,7 +136,7 @@ func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int, args
 
 	// Set optional arguments
 	if len(args) > 0 {
-		fn := args[0].(StdPrinterFn)
+		fn := args[0].(StdPrinterFunc)
 		l.printerFn = fn
 	}
 
