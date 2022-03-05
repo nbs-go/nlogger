@@ -1,10 +1,11 @@
-package nlogger
+package nlogger_test
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nbs-go/nlogger"
 	stdLog "log"
 	"os"
 	"testing"
@@ -35,90 +36,90 @@ func TestMain(m *testing.M) {
 }
 
 func TestFatal(t *testing.T) {
-	testLogger := NewStdLogger(LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
 	testLogger.Fatal("Testing FATAL with message only")
 	testLogger.Fatalf("Testing FATAL with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Fatal("Testing FATAL with options. Formatted Message: %s %s %s",
-		Error(fmt.Errorf("a fatal error occurred. %w", errors.New("source of error"))),
-		Metadata(metadata),
-		AddMetadata("key", "value"),
-		Format("arg1", "arg2", "arg3"),
+		nlogger.Error(fmt.Errorf("a fatal error occurred. %w", errors.New("source of error"))),
+		nlogger.Metadata(metadata),
+		nlogger.AddMetadata("key", "value"),
+		nlogger.Format("arg1", "arg2", "arg3"),
 	)
 }
 
 func TestError(t *testing.T) {
-	testLogger := NewStdLogger(LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
 	testLogger.Error("Testing ERROR with message only")
 	testLogger.Errorf("Testing ERROR with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Error("Testing ERROR with options. Formatted Message: %s %s %s",
-		Error(errors.New("a error occurred")),
-		Metadata(metadata),
-		AddMetadata("key", "value"),
-		Format("arg1", "arg2", "arg3"),
+		nlogger.Error(errors.New("a error occurred")),
+		nlogger.Metadata(metadata),
+		nlogger.AddMetadata("key", "value"),
+		nlogger.Format("arg1", "arg2", "arg3"),
 	)
 }
 
 func TestWarn(t *testing.T) {
-	testLogger := NewStdLogger(LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
 	testLogger.Warn("Testing WARN with message only")
 	testLogger.Warnf("Testing WARN with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Warn("Testing WARN with options. Formatted Message: %s %s %s",
-		Metadata(metadata),
-		AddMetadata("key", "value"),
-		Format("arg1", "arg2", "arg3"))
+		nlogger.Metadata(metadata),
+		nlogger.AddMetadata("key", "value"),
+		nlogger.Format("arg1", "arg2", "arg3"))
 }
 
 func TestInfo(t *testing.T) {
-	testLogger := NewStdLogger(LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
 	testLogger.Info("Testing INFO with message only")
 	testLogger.Infof("Testing INFO with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Info("Testing INFO with options. Formatted Message: %s %s %s",
-		Metadata(metadata),
-		AddMetadata("key", "value"),
-		Format("arg1", "arg2", "arg3"),
+		nlogger.Metadata(metadata),
+		nlogger.AddMetadata("key", "value"),
+		nlogger.Format("arg1", "arg2", "arg3"),
 	)
 }
 
 func TestDebug(t *testing.T) {
-	testLogger := NewStdLogger(LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
 	testLogger.Debug("Testing DEBUG with message only")
 	testLogger.Debugf("Testing DEBUG with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Debug("Testing DEBUG with options. Formatted Message: %s %s %s",
-		AddMetadata("key", "value"),
-		Format("arg1", "arg2", "arg3"),
-		"expected to skip",
+		nlogger.AddMetadata("key", "value"),
+		nlogger.Format("arg1", "arg2", "arg3"),
 	)
-	testLogger.Debug("Testing DEBUG with error only", Error(errors.New("this is error")))
+	testLogger.Debug("Testing DEBUG with error only",
+		nlogger.Error(errors.New("this is error")))
 }
 
 func TestParseLevel(t *testing.T) {
-	testParseLevel(t, "0", LevelFatal)
-	testParseLevel(t, "panic", LevelFatal)
-	testParseLevel(t, "PANIC", LevelFatal)
+	testParseLevel(t, "0", nlogger.LevelFatal)
+	testParseLevel(t, "panic", nlogger.LevelFatal)
+	testParseLevel(t, "PANIC", nlogger.LevelFatal)
 
-	testParseLevel(t, "1", LevelFatal)
-	testParseLevel(t, "fatal", LevelFatal)
-	testParseLevel(t, "FATAL", LevelFatal)
+	testParseLevel(t, "1", nlogger.LevelFatal)
+	testParseLevel(t, "fatal", nlogger.LevelFatal)
+	testParseLevel(t, "FATAL", nlogger.LevelFatal)
 
-	testParseLevel(t, "3", LevelError)
-	testParseLevel(t, "error", LevelError)
-	testParseLevel(t, "ERROR", LevelError)
+	testParseLevel(t, "3", nlogger.LevelError)
+	testParseLevel(t, "error", nlogger.LevelError)
+	testParseLevel(t, "ERROR", nlogger.LevelError)
 
-	testParseLevel(t, "4", LevelWarn)
-	testParseLevel(t, "warn", LevelWarn)
-	testParseLevel(t, "WARN", LevelWarn)
+	testParseLevel(t, "4", nlogger.LevelWarn)
+	testParseLevel(t, "warn", nlogger.LevelWarn)
+	testParseLevel(t, "WARN", nlogger.LevelWarn)
 
-	testParseLevel(t, "6", LevelInfo)
-	testParseLevel(t, "info", LevelInfo)
-	testParseLevel(t, "INFO", LevelInfo)
+	testParseLevel(t, "6", nlogger.LevelInfo)
+	testParseLevel(t, "info", nlogger.LevelInfo)
+	testParseLevel(t, "INFO", nlogger.LevelInfo)
 
-	testParseLevel(t, "7", LevelDebug)
-	testParseLevel(t, "debug", LevelDebug)
-	testParseLevel(t, "DEBUG", LevelDebug)
+	testParseLevel(t, "7", nlogger.LevelDebug)
+	testParseLevel(t, "debug", nlogger.LevelDebug)
+	testParseLevel(t, "DEBUG", nlogger.LevelDebug)
 }
 
 func TestTraceNotFound(t *testing.T) {
-	file, line := Trace(3)
+	file, line := nlogger.Trace(3)
 	if file != "<???>" {
 		t.Errorf("unexpected traced file. Expected: <???>, Actual: %s", file)
 	}
@@ -127,22 +128,22 @@ func TestTraceNotFound(t *testing.T) {
 	}
 }
 
-func testParseLevel(t *testing.T, levelStr string, expectedLevel LogLevel) {
-	level := ParseLevel(levelStr)
+func testParseLevel(t *testing.T, levelStr string, expectedLevel nlogger.LogLevel) {
+	level := nlogger.ParseLevel(levelStr)
 	if level != expectedLevel {
 		t.Errorf("failed parsing level. Input: %s, Expected: %d, Actual: %d", levelStr, expectedLevel, level)
 	}
 }
 
 func TestDefault(t *testing.T) {
-	l := Get()
+	l := nlogger.Get()
 	l.Error("This is called from StdLogger")
 	l.Debugf("This should not appear")
 }
 
 func TestRegisterEmptyLogger(t *testing.T) {
 	// Clear existing logger
-	Clear()
+	nlogger.Clear()
 
 	// Ensure test will recover when panic
 	defer func() {
@@ -154,32 +155,32 @@ func TestRegisterEmptyLogger(t *testing.T) {
 	}()
 
 	// The following is the code under test
-	Register(nil)
+	nlogger.Register(nil)
 }
 
 func TestChildLogger(t *testing.T) {
-	testLogger := NewStdLogger(LevelDebug, nil, "parent", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "parent", stdLog.LstdFlags)
 	testLogger.Debug("this is called from parent logger")
 
-	childLogger1 := testLogger.NewChild(WithNamespace("child"))
+	childLogger1 := testLogger.NewChild(nlogger.WithNamespace("child"))
 	childLogger1.Debug("this is called from child logger with namespace")
 
-	childLogger2 := NewChild()
+	childLogger2 := nlogger.NewChild()
 	childLogger2.Debug("this is called from child logger without namespace")
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, RequestIdKey, "b0a495f4-f919-4fc0-b3e2-95f83d0c4a04")
-	ctxLogger := testLogger.NewChild(Context(ctx))
+	ctx = context.WithValue(ctx, nlogger.RequestIdKey, "b0a495f4-f919-4fc0-b3e2-95f83d0c4a04")
+	ctxLogger := testLogger.NewChild(nlogger.Context(ctx))
 	ctxLogger.Debugf("this log must contains request id")
 }
 
 func TestEvaluateOptions(t *testing.T) {
 	// Evaluate context argument
-	args := []interface{}{
-		Context(context.Background()),
-		AddMetadata("testInt64", 1),
+	args := []nlogger.OptionSetterFunc{
+		nlogger.Context(context.Background()),
+		nlogger.AddMetadata("testInt64", 1),
 	}
-	o := EvaluateOptions(args)
+	o := nlogger.EvaluateOptions(args)
 
 	// Get context
 	ctx := o.GetContext()
@@ -192,8 +193,8 @@ func TestEvaluateOptions(t *testing.T) {
 
 func TestCustomOptions(t *testing.T) {
 	dt := time.Now()
-	o := &Options{
-		KV: map[string]interface{}{
+	o := &nlogger.Options{
+		Values: map[string]interface{}{
 			"testInt64":  int64(99),
 			"testInt":    98,
 			"testString": "Hello",
@@ -257,12 +258,12 @@ func TestCustomOptions(t *testing.T) {
 }
 
 func TestCustomPrinter(t *testing.T) {
-	testLogger := NewStdLogger(LevelDebug, nil, "", 0, newCustomPrinter())
+	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "", 0, newCustomPrinter())
 	testLogger.Debug("This message is printed in json")
 }
 
-func newCustomPrinter() StdPrinterFn {
-	return func(writer *stdLog.Logger, outLevel LogLevel, msg string, options *Options, skipTrace int) {
+func newCustomPrinter() nlogger.StdPrinterFunc {
+	return func(writer *stdLog.Logger, outLevel nlogger.LogLevel, msg string, options *nlogger.Options, skipTrace int) {
 		// Init json body
 		jsonBody := map[string]interface{}{
 			"timestamp": time.Now().Format(time.RFC3339),
