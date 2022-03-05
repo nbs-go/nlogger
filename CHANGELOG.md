@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v2.0.0
+
+- feat(stdlogger): Change implementation on StdLogger to follow Logger interface
+- BREAKING CHANGE: Change args type to distinct between logging option and formatted logging functions
+
 ## v1.4.3
 
 - [FIXED] Fix FormatArgs option evaluation
