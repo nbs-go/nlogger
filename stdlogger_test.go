@@ -40,7 +40,7 @@ func TestFatal(t *testing.T) {
 	testLogger.Fatal("Testing FATAL with message only")
 	testLogger.Fatalf("Testing FATAL with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Fatal("Testing FATAL with options. Formatted Message: %s %s %s",
-		nlogger.Error(fmt.Errorf("a fatal error occurred. %w", errors.New("source of error"))),
+		nlogger.Error(fmt.Errorf("a fatal error occurred. CausedBy => %w", errors.New("source of error"))),
 		nlogger.Metadata(metadata),
 		nlogger.AddMetadata("key", "value"),
 		nlogger.Format("arg1", "arg2", "arg3"),
@@ -116,16 +116,6 @@ func TestParseLevel(t *testing.T) {
 	testParseLevel(t, "7", nlogger.LevelDebug)
 	testParseLevel(t, "debug", nlogger.LevelDebug)
 	testParseLevel(t, "DEBUG", nlogger.LevelDebug)
-}
-
-func TestTraceNotFound(t *testing.T) {
-	file, line := nlogger.Trace(3)
-	if file != "<???>" {
-		t.Errorf("unexpected traced file. Expected: <???>, Actual: %s", file)
-	}
-	if line != 0 {
-		t.Errorf("unexpected traced line. Expected: 0, Actual: %d", line)
-	}
 }
 
 func testParseLevel(t *testing.T, levelStr string, expectedLevel nlogger.LogLevel) {
@@ -263,7 +253,7 @@ func TestCustomPrinter(t *testing.T) {
 }
 
 func newCustomPrinter() nlogger.StdPrinterFunc {
-	return func(writer *stdLog.Logger, outLevel nlogger.LogLevel, msg string, options *nlogger.Options, skipTrace int) {
+	return func(writer *stdLog.Logger, outLevel nlogger.LogLevel, msg string, options *nlogger.Options) {
 		// Init json body
 		jsonBody := map[string]interface{}{
 			"timestamp": time.Now().Format(time.RFC3339),

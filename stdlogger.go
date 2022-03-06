@@ -3,7 +3,6 @@ package nlogger
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	stdLog "log"
@@ -18,12 +17,11 @@ var stdLevelPrefix = map[LogLevel]string{
 	LevelDebug: "[DEBUG] ",
 }
 
-type StdPrinterFunc func(writer *stdLog.Logger, level LogLevel, msg string, options *Options, skipTrace int)
+type StdPrinterFunc func(writer *stdLog.Logger, level LogLevel, msg string, options *Options)
 
 type StdLogger struct {
 	level       LogLevel
 	levelPrefix map[LogLevel]string
-	skipTrace   int
 	writer      *stdLog.Logger
 	ioWriter    io.Writer
 	namespace   string
@@ -110,7 +108,7 @@ func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
 		options.Context = l.ctx
 	}
 
-	fn(l.writer, outLevel, msg, options, l.skipTrace)
+	fn(l.writer, outLevel, msg, options)
 }
 
 func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int, args ...interface{}) *StdLogger {
@@ -127,7 +125,6 @@ func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int, args
 	// Init standard logger instance
 	l := StdLogger{
 		level:     level,
-		skipTrace: 2,
 		writer:    stdLog.New(w, prefix, flags),
 		ioWriter:  w,
 		namespace: namespace,
@@ -142,7 +139,7 @@ func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int, args
 	return &l
 }
 
-func stdPrint(writer *stdLog.Logger, level LogLevel, msg string, options *Options, skipTrace int) {
+func stdPrint(writer *stdLog.Logger, level LogLevel, msg string, options *Options) {
 	// Generate prefix
 	prefix := stdLevelPrefix[level]
 
@@ -168,13 +165,7 @@ func stdPrint(writer *stdLog.Logger, level LogLevel, msg string, options *Option
 	// If error exists, then print error and its trace
 	logErr := options.GetError()
 	if logErr != nil && level <= LevelError {
-		filePath, line := Trace(skipTrace)
 		writer.Printf("  > Error: %s\n", logErr)
-		writer.Printf("  > Trace: %s:%d\n", filePath, line)
-		// Print cause
-		if unErr := errors.Unwrap(logErr); unErr != nil {
-			writer.Printf("  > ErrorCause: %s\n", unErr)
-		}
 	}
 
 	meta := options.Metadata

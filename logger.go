@@ -4,7 +4,6 @@ import (
 	"fmt"
 	stdLog "log"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -96,16 +95,6 @@ func Clear() {
 	logMutex.Lock()
 	defer logMutex.Unlock()
 	log = nil
-}
-
-// Trace retrieve where the code is being called and returns full path of file where the error occurred
-func Trace(skip int) (string, int) {
-	_, file, line, ok := runtime.Caller(skip + 1)
-	if !ok {
-		file = "<???>"
-		line = 0
-	}
-	return file, line
 }
 
 // ParseLevel parse level from string to Log Level enum
