@@ -183,7 +183,7 @@ func TestEvaluateOptions(t *testing.T) {
 	o := nlogger.EvaluateOptions(args)
 
 	// Get context
-	ctx := o.GetContext()
+	ctx := o.Context
 	if ctx == nil {
 		t.Error("Context is not evaluated")
 	} else {
@@ -251,7 +251,7 @@ func TestCustomOptions(t *testing.T) {
 	}
 
 	// Get empty context
-	ctx := o.GetContext()
+	ctx := o.Context
 	if ctx != nil {
 		t.Errorf("Unexpected value. context Value is supposed not to be set")
 	}

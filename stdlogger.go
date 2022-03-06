@@ -85,8 +85,7 @@ func (l *StdLogger) NewChild(args ...OptionSetterFunc) Logger {
 	cl := NewStdLogger(l.level, l.ioWriter, n, l.flags)
 
 	// Set context if available
-	ctx := options.GetContext()
-	if ctx != nil {
+	if ctx := options.Context; ctx != nil {
 		cl.ctx = ctx
 	}
 
@@ -107,8 +106,8 @@ func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
 	}
 
 	// Inject context if not set
-	if l.ctx != nil && !options.HasContext() {
-		options.Values[ContextKey] = l.ctx
+	if l.ctx != nil && options.Context == nil {
+		options.Context = l.ctx
 	}
 
 	fn(l.writer, outLevel, msg, options, l.skipTrace)
@@ -157,8 +156,7 @@ func stdPrint(writer *stdLog.Logger, level LogLevel, msg string, options *Option
 	}
 
 	// Get context
-	ctx := options.GetContext()
-	if ctx != nil {
+	if ctx := options.Context; ctx != nil {
 		// Get request id
 		v := ctx.Value(RequestIdKey)
 		reqId, ok := v.(string)

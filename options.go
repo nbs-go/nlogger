@@ -9,6 +9,7 @@ type Options struct {
 	Values   map[string]interface{}
 	Metadata map[string]interface{}
 	FmtArgs  []interface{}
+	Context  context.Context
 }
 
 type OptionSetterFunc = func(*Options)
@@ -65,19 +66,6 @@ func (o *Options) GetTime(k string) (time.Time, bool) {
 	return t, ok
 }
 
-func (o *Options) HasContext() bool {
-	_, ok := o.Values[ContextKey]
-	return ok
-}
-
-func (o *Options) GetContext() context.Context {
-	v, ok := o.Values[ContextKey]
-	if !ok {
-		return nil
-	}
-	return v.(context.Context)
-}
-
 func (o *Options) GetError() error {
 	v, ok := o.Values[ErrorKey]
 	if !ok {
@@ -132,6 +120,6 @@ func WithNamespace(n string) OptionSetterFunc {
 
 func Context(ctx context.Context) OptionSetterFunc {
 	return func(o *Options) {
-		o.Values[ContextKey] = ctx
+		o.Context = ctx
 	}
 }

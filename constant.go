@@ -29,6 +29,12 @@ const (
 const (
 	ErrorKey     = "error"
 	NamespaceKey = "namespace"
-	ContextKey   = "ctx"
-	RequestIdKey = "requestId"
+)
+
+// Context Key
+
+type ContextKey string
+
+const (
+	RequestIdKey ContextKey = "requestId"
 )
