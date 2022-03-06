@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nbs-go/nlogger"
+	"github.com/nbs-go/nlogger/v2"
 	stdLog "log"
 	"os"
 	"testing"
