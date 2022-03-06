@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v2.1.0
+
+- fix: Change module name, add prefix /v2
+- feat(stdlogger): Remove error tracing responsibility
+- feat(option): Add Context as built-in options
+
 ## v2.0.0
 
 - feat(stdlogger): Change implementation on StdLogger to follow Logger interface
