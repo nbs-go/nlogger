@@ -20,14 +20,13 @@ var stdLevelPrefix = map[LogLevel]string{
 type StdPrinterFunc func(writer *stdLog.Logger, level LogLevel, msg string, options *Options)
 
 type StdLogger struct {
-	level       LogLevel
-	levelPrefix map[LogLevel]string
-	writer      *stdLog.Logger
-	ioWriter    io.Writer
-	namespace   string
-	flags       int
-	ctx         context.Context
-	printerFn   StdPrinterFunc
+	level     LogLevel
+	writer    *stdLog.Logger
+	ioWriter  io.Writer
+	namespace string
+	flags     int
+	ctx       context.Context
+	printerFn StdPrinterFunc
 }
 
 func (l *StdLogger) Fatal(msg string, args ...OptionSetterFunc) {
