@@ -30,35 +30,35 @@ type StdLogger struct {
 	printerFn   StdPrinterFunc
 }
 
-func (l StdLogger) Fatal(msg string, args ...OptionSetterFunc) {
+func (l *StdLogger) Fatal(msg string, args ...OptionSetterFunc) {
 	l.print(LevelFatal, msg, EvaluateOptions(args))
 }
 
-func (l StdLogger) Fatalf(format string, args ...interface{}) {
+func (l *StdLogger) Fatalf(format string, args ...interface{}) {
 	l.print(LevelFatal, format, NewFormatOptions(args...))
 }
 
-func (l StdLogger) Error(msg string, args ...OptionSetterFunc) {
+func (l *StdLogger) Error(msg string, args ...OptionSetterFunc) {
 	l.print(LevelError, msg, EvaluateOptions(args))
 }
 
-func (l StdLogger) Errorf(format string, args ...interface{}) {
+func (l *StdLogger) Errorf(format string, args ...interface{}) {
 	l.print(LevelError, format, NewFormatOptions(args...))
 }
 
-func (l StdLogger) Warn(msg string, args ...OptionSetterFunc) {
+func (l *StdLogger) Warn(msg string, args ...OptionSetterFunc) {
 	l.print(LevelWarn, msg, EvaluateOptions(args))
 }
 
-func (l StdLogger) Warnf(format string, args ...interface{}) {
+func (l *StdLogger) Warnf(format string, args ...interface{}) {
 	l.print(LevelWarn, format, NewFormatOptions(args...))
 }
 
-func (l StdLogger) Info(msg string, args ...OptionSetterFunc) {
+func (l *StdLogger) Info(msg string, args ...OptionSetterFunc) {
 	l.print(LevelInfo, msg, EvaluateOptions(args))
 }
 
-func (l StdLogger) Infof(format string, args ...interface{}) {
+func (l *StdLogger) Infof(format string, args ...interface{}) {
 	l.print(LevelInfo, format, NewFormatOptions(args...))
 }
 
