@@ -1,6 +1,6 @@
 package nlogger
 
-const namespace = "nbs-go/nlogger"
+const pkgNamespace = "nlogger"
 
 // LogLevel constants as defined in RFC5424.
 type LogLevel = int8

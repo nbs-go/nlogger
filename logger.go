@@ -80,7 +80,7 @@ func NewChild(args ...OptionSetterFunc) Logger {
 func Register(l Logger) {
 	// If logger is nil, return error
 	if l == nil {
-		panic(fmt.Errorf("%s: logger to be registered is nil", namespace))
+		panic(fmt.Errorf("%s: logger to be registered is nil", pkgNamespace))
 	}
 
 	// Set logger
