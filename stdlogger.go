@@ -4,23 +4,25 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/nbs-go/nlogger/v2/level"
+	"github.com/nbs-go/nlogger/v2/option"
 	"io"
 	stdLog "log"
 	"os"
 )
 
-var stdLevelPrefix = map[LogLevel]string{
-	LevelFatal: "[FATAL] ",
-	LevelError: "[ERROR] ",
-	LevelWarn:  " [WARN] ",
-	LevelInfo:  " [INFO] ",
-	LevelDebug: "[DEBUG] ",
+var stdLevelPrefix = map[level.LogLevel]string{
+	level.Fatal: "[FATAL] ",
+	level.Error: "[ERROR] ",
+	level.Warn:  " [WARN] ",
+	level.Info:  " [INFO] ",
+	level.Debug: "[DEBUG] ",
 }
 
-type StdPrinterFunc func(writer *stdLog.Logger, level LogLevel, msg string, options *Options)
+type StdPrinterFunc func(writer *stdLog.Logger, lv level.LogLevel, msg string, options *logOption.Options)
 
 type StdLogger struct {
-	level     LogLevel
+	level     level.LogLevel
 	writer    *stdLog.Logger
 	ioWriter  io.Writer
 	namespace string
@@ -29,51 +31,51 @@ type StdLogger struct {
 	printerFn StdPrinterFunc
 }
 
-func (l *StdLogger) Fatal(msg string, args ...OptionSetterFunc) {
-	l.print(LevelFatal, msg, EvaluateOptions(args))
+func (l *StdLogger) Fatal(msg string, args ...logOption.SetterFunc) {
+	l.print(level.Fatal, msg, logOption.Evaluate(args))
 }
 
 func (l *StdLogger) Fatalf(format string, args ...interface{}) {
-	l.print(LevelFatal, format, NewFormatOptions(args...))
+	l.print(level.Fatal, format, logOption.NewFormatOptions(args...))
 }
 
-func (l *StdLogger) Error(msg string, args ...OptionSetterFunc) {
-	l.print(LevelError, msg, EvaluateOptions(args))
+func (l *StdLogger) Error(msg string, args ...logOption.SetterFunc) {
+	l.print(level.Error, msg, logOption.Evaluate(args))
 }
 
 func (l *StdLogger) Errorf(format string, args ...interface{}) {
-	l.print(LevelError, format, NewFormatOptions(args...))
+	l.print(level.Error, format, logOption.NewFormatOptions(args...))
 }
 
-func (l *StdLogger) Warn(msg string, args ...OptionSetterFunc) {
-	l.print(LevelWarn, msg, EvaluateOptions(args))
+func (l *StdLogger) Warn(msg string, args ...logOption.SetterFunc) {
+	l.print(level.Warn, msg, logOption.Evaluate(args))
 }
 
 func (l *StdLogger) Warnf(format string, args ...interface{}) {
-	l.print(LevelWarn, format, NewFormatOptions(args...))
+	l.print(level.Warn, format, logOption.NewFormatOptions(args...))
 }
 
-func (l *StdLogger) Info(msg string, args ...OptionSetterFunc) {
-	l.print(LevelInfo, msg, EvaluateOptions(args))
+func (l *StdLogger) Info(msg string, args ...logOption.SetterFunc) {
+	l.print(level.Info, msg, logOption.Evaluate(args))
 }
 
 func (l *StdLogger) Infof(format string, args ...interface{}) {
-	l.print(LevelInfo, format, NewFormatOptions(args...))
+	l.print(level.Info, format, logOption.NewFormatOptions(args...))
 }
 
-func (l *StdLogger) Debug(msg string, args ...OptionSetterFunc) {
-	l.print(LevelDebug, msg, EvaluateOptions(args))
+func (l *StdLogger) Debug(msg string, args ...logOption.SetterFunc) {
+	l.print(level.Debug, msg, logOption.Evaluate(args))
 }
 
 func (l *StdLogger) Debugf(format string, args ...interface{}) {
-	l.print(LevelDebug, format, NewFormatOptions(args...))
+	l.print(level.Debug, format, logOption.NewFormatOptions(args...))
 }
 
-func (l *StdLogger) NewChild(args ...OptionSetterFunc) Logger {
-	options := EvaluateOptions(args)
+func (l *StdLogger) NewChild(args ...logOption.SetterFunc) Logger {
+	options := logOption.Evaluate(args)
 
 	// Override namespace if option is set
-	n, _ := options.GetString(NamespaceKey)
+	n, _ := logOption.GetString(options, logOption.NamespaceKey)
 	if n == "" {
 		n = l.namespace
 	}
@@ -89,7 +91,7 @@ func (l *StdLogger) NewChild(args ...OptionSetterFunc) Logger {
 	return cl
 }
 
-func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
+func (l *StdLogger) print(outLevel level.LogLevel, msg string, options *logOption.Options) {
 	// if output level is greater than log level, don't print
 	if outLevel > l.level {
 		return
@@ -110,7 +112,7 @@ func (l *StdLogger) print(outLevel LogLevel, msg string, options *Options) {
 	fn(l.writer, outLevel, msg, options)
 }
 
-func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int, args ...interface{}) *StdLogger {
+func NewStdLogger(level level.LogLevel, w io.Writer, namespace string, flags int, args ...interface{}) *StdLogger {
 	// If writer is nil, set default writer to Stdout
 	if w == nil {
 		w = os.Stdout
@@ -138,9 +140,9 @@ func NewStdLogger(level LogLevel, w io.Writer, namespace string, flags int, args
 	return &l
 }
 
-func stdPrint(writer *stdLog.Logger, level LogLevel, msg string, options *Options) {
+func stdPrint(writer *stdLog.Logger, lv level.LogLevel, msg string, options *logOption.Options) {
 	// Generate prefix
-	prefix := stdLevelPrefix[level]
+	prefix := stdLevelPrefix[lv]
 
 	// If options is existed
 	// If formatted arguments is available, then print as formatted
@@ -162,8 +164,8 @@ func stdPrint(writer *stdLog.Logger, level LogLevel, msg string, options *Option
 	}
 
 	// If error exists, then print error and its trace
-	logErr := options.GetError()
-	if logErr != nil && level <= LevelError {
+	logErr := logOption.GetError(options, logOption.ErrorKey)
+	if logErr != nil && lv <= level.Error {
 		writer.Printf("  > Error: %s\n", logErr)
 	}
 

@@ -2,47 +2,48 @@ package nlogger
 
 import (
 	"fmt"
+	"github.com/nbs-go/nlogger/v2/level"
+	"github.com/nbs-go/nlogger/v2/option"
 	stdLog "log"
 	"os"
-	"strings"
 	"sync"
 )
 
 // Logger contract defines methods that must be available for a Logger.
 type Logger interface {
 	// Fatal must write an error, message that explaining the error and where it's occurred in FATAL level.
-	Fatal(msg string, options ...OptionSetterFunc)
+	Fatal(msg string, options ...logOption.SetterFunc)
 
 	// Fatalf must write a formatted message and where it's occurred in FATAL level.
 	Fatalf(format string, args ...interface{})
 
 	// Error must write an error, message that explaining the error and where it's occurred in ERROR level.
-	Error(msg string, options ...OptionSetterFunc)
+	Error(msg string, options ...logOption.SetterFunc)
 
 	// Errorf must write a formatted message and where it's occurred in ERROR level.
 	Errorf(format string, args ...interface{})
 
 	// Warn must write a message in WARN level.
-	Warn(msg string, options ...OptionSetterFunc)
+	Warn(msg string, options ...logOption.SetterFunc)
 
 	// Warnf must write a formatted message in WARN level.
 	Warnf(format string, args ...interface{})
 
 	// Info must write a message in INFO level.
-	Info(msg string, options ...OptionSetterFunc)
+	Info(msg string, options ...logOption.SetterFunc)
 
 	// Infof must write a formatted message in INFO level.
 	Infof(format string, args ...interface{})
 
 	// Debug must write a message in DEBUG level.
-	Debug(msg string, options ...OptionSetterFunc)
+	Debug(msg string, options ...logOption.SetterFunc)
 
 	// Debugf must write a formatted message in DEBUG level.
 	Debugf(format string, args ...interface{})
 
 	// NewChild must create a child logger and inherit level, writer and other flags
 	// only option such as namespace could be overridden
-	NewChild(args ...OptionSetterFunc) Logger
+	NewChild(args ...logOption.SetterFunc) Logger
 }
 
 // log is a singleton logger instance
@@ -55,7 +56,7 @@ func Get() Logger {
 	if log == nil {
 		// Get logger from env
 		logLevelStr, _ := os.LookupEnv(EnvLogLevel)
-		logLevel := ParseLevel(logLevelStr)
+		logLevel := level.Parse(logLevelStr)
 
 		// Get logger prefix
 		logPrefix, _ := os.LookupEnv(EnvLogPrefix)
@@ -70,7 +71,7 @@ func Get() Logger {
 	return log
 }
 
-func NewChild(args ...OptionSetterFunc) Logger {
+func NewChild(args ...logOption.SetterFunc) Logger {
 	// Get parent logger
 	logger := Get()
 	return logger.NewChild(args...)
@@ -95,20 +96,4 @@ func Clear() {
 	logMutex.Lock()
 	defer logMutex.Unlock()
 	log = nil
-}
-
-// ParseLevel parse level from string to Log Level enum
-func ParseLevel(level string) LogLevel {
-	switch strings.ToLower(level) {
-	case "panic", "0", "fatal", "1":
-		return LevelFatal
-	case "warn", "4":
-		return LevelWarn
-	case "info", "6":
-		return LevelInfo
-	case "debug", "7":
-		return LevelDebug
-	default:
-		return DefaultLevel
-	}
 }

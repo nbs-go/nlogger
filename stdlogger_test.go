@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbs-go/nlogger/v2"
+	"github.com/nbs-go/nlogger/v2/level"
+	logOption "github.com/nbs-go/nlogger/v2/option"
 	stdLog "log"
 	"os"
 	"testing"
@@ -36,92 +38,92 @@ func TestMain(m *testing.M) {
 }
 
 func TestFatal(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
 	testLogger.Fatal("Testing FATAL with message only")
 	testLogger.Fatalf("Testing FATAL with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Fatal("Testing FATAL with options. Formatted Message: %s %s %s",
-		nlogger.Error(fmt.Errorf("a fatal error occurred. CausedBy => %w", errors.New("source of error"))),
-		nlogger.Metadata(metadata),
-		nlogger.AddMetadata("key", "value"),
-		nlogger.Format("arg1", "arg2", "arg3"),
+		logOption.Error(fmt.Errorf("a fatal error occurred. CausedBy => %w", errors.New("source of error"))),
+		logOption.Metadata(metadata),
+		logOption.AddMetadata("key", "value"),
+		logOption.Format("arg1", "arg2", "arg3"),
 	)
 }
 
 func TestError(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
 	testLogger.Error("Testing ERROR with message only")
 	testLogger.Errorf("Testing ERROR with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Error("Testing ERROR with options. Formatted Message: %s %s %s",
-		nlogger.Error(errors.New("a error occurred")),
-		nlogger.Metadata(metadata),
-		nlogger.AddMetadata("key", "value"),
-		nlogger.Format("arg1", "arg2", "arg3"),
+		logOption.Error(errors.New("a error occurred")),
+		logOption.Metadata(metadata),
+		logOption.AddMetadata("key", "value"),
+		logOption.Format("arg1", "arg2", "arg3"),
 	)
 }
 
 func TestWarn(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
 	testLogger.Warn("Testing WARN with message only")
 	testLogger.Warnf("Testing WARN with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Warn("Testing WARN with options. Formatted Message: %s %s %s",
-		nlogger.Metadata(metadata),
-		nlogger.AddMetadata("key", "value"),
-		nlogger.Format("arg1", "arg2", "arg3"))
+		logOption.Metadata(metadata),
+		logOption.AddMetadata("key", "value"),
+		logOption.Format("arg1", "arg2", "arg3"))
 }
 
 func TestInfo(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
 	testLogger.Info("Testing INFO with message only")
 	testLogger.Infof("Testing INFO with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Info("Testing INFO with options. Formatted Message: %s %s %s",
-		nlogger.Metadata(metadata),
-		nlogger.AddMetadata("key", "value"),
-		nlogger.Format("arg1", "arg2", "arg3"),
+		logOption.Metadata(metadata),
+		logOption.AddMetadata("key", "value"),
+		logOption.Format("arg1", "arg2", "arg3"),
 	)
 }
 
 func TestDebug(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
 	testLogger.Debug("Testing DEBUG with message only")
 	testLogger.Debugf("Testing DEBUG with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Debug("Testing DEBUG with options. Formatted Message: %s %s %s",
-		nlogger.AddMetadata("key", "value"),
-		nlogger.Format("arg1", "arg2", "arg3"),
+		logOption.AddMetadata("key", "value"),
+		logOption.Format("arg1", "arg2", "arg3"),
 	)
 	testLogger.Debug("Testing DEBUG with error only",
-		nlogger.Error(errors.New("this is error")))
+		logOption.Error(errors.New("this is error")))
 }
 
 func TestParseLevel(t *testing.T) {
-	testParseLevel(t, "0", nlogger.LevelFatal)
-	testParseLevel(t, "panic", nlogger.LevelFatal)
-	testParseLevel(t, "PANIC", nlogger.LevelFatal)
+	testParseLevel(t, "0", level.Fatal)
+	testParseLevel(t, "panic", level.Fatal)
+	testParseLevel(t, "PANIC", level.Fatal)
 
-	testParseLevel(t, "1", nlogger.LevelFatal)
-	testParseLevel(t, "fatal", nlogger.LevelFatal)
-	testParseLevel(t, "FATAL", nlogger.LevelFatal)
+	testParseLevel(t, "1", level.Fatal)
+	testParseLevel(t, "fatal", level.Fatal)
+	testParseLevel(t, "FATAL", level.Fatal)
 
-	testParseLevel(t, "3", nlogger.LevelError)
-	testParseLevel(t, "error", nlogger.LevelError)
-	testParseLevel(t, "ERROR", nlogger.LevelError)
+	testParseLevel(t, "3", level.Error)
+	testParseLevel(t, "error", level.Error)
+	testParseLevel(t, "ERROR", level.Error)
 
-	testParseLevel(t, "4", nlogger.LevelWarn)
-	testParseLevel(t, "warn", nlogger.LevelWarn)
-	testParseLevel(t, "WARN", nlogger.LevelWarn)
+	testParseLevel(t, "4", level.Warn)
+	testParseLevel(t, "warn", level.Warn)
+	testParseLevel(t, "WARN", level.Warn)
 
-	testParseLevel(t, "6", nlogger.LevelInfo)
-	testParseLevel(t, "info", nlogger.LevelInfo)
-	testParseLevel(t, "INFO", nlogger.LevelInfo)
+	testParseLevel(t, "6", level.Info)
+	testParseLevel(t, "info", level.Info)
+	testParseLevel(t, "INFO", level.Info)
 
-	testParseLevel(t, "7", nlogger.LevelDebug)
-	testParseLevel(t, "debug", nlogger.LevelDebug)
-	testParseLevel(t, "DEBUG", nlogger.LevelDebug)
+	testParseLevel(t, "7", level.Debug)
+	testParseLevel(t, "debug", level.Debug)
+	testParseLevel(t, "DEBUG", level.Debug)
 }
 
-func testParseLevel(t *testing.T, levelStr string, expectedLevel nlogger.LogLevel) {
-	level := nlogger.ParseLevel(levelStr)
-	if level != expectedLevel {
-		t.Errorf("failed parsing level. Input: %s, Expected: %d, Actual: %d", levelStr, expectedLevel, level)
+func testParseLevel(t *testing.T, levelStr string, expectedLevel level.LogLevel) {
+	lv := level.Parse(levelStr)
+	if lv != expectedLevel {
+		t.Errorf("failed parsing level. Input: %s, Expected: %d, Actual: %d", levelStr, expectedLevel, lv)
 	}
 }
 
@@ -149,10 +151,10 @@ func TestRegisterEmptyLogger(t *testing.T) {
 }
 
 func TestChildLogger(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "parent", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil, "parent", stdLog.LstdFlags)
 	testLogger.Debug("this is called from parent logger")
 
-	childLogger1 := testLogger.NewChild(nlogger.WithNamespace("child"))
+	childLogger1 := testLogger.NewChild(logOption.WithNamespace("child"))
 	childLogger1.Debug("this is called from child logger with namespace")
 
 	childLogger2 := nlogger.NewChild()
@@ -160,17 +162,17 @@ func TestChildLogger(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, nlogger.RequestIdKey, "b0a495f4-f919-4fc0-b3e2-95f83d0c4a04")
-	ctxLogger := testLogger.NewChild(nlogger.Context(ctx))
+	ctxLogger := testLogger.NewChild(logOption.Context(ctx))
 	ctxLogger.Debugf("this log must contains request id")
 }
 
 func TestEvaluateOptions(t *testing.T) {
 	// Evaluate context argument
-	args := []nlogger.OptionSetterFunc{
-		nlogger.Context(context.Background()),
-		nlogger.AddMetadata("testInt64", 1),
+	args := []logOption.SetterFunc{
+		logOption.Context(context.Background()),
+		logOption.AddMetadata("testInt64", 1),
 	}
-	o := nlogger.EvaluateOptions(args)
+	o := logOption.Evaluate(args)
 
 	// Get context
 	ctx := o.Context
@@ -183,7 +185,7 @@ func TestEvaluateOptions(t *testing.T) {
 
 func TestCustomOptions(t *testing.T) {
 	dt := time.Now()
-	o := &nlogger.Options{
+	o := &logOption.Options{
 		Values: map[string]interface{}{
 			"testInt64":  int64(99),
 			"testInt":    98,
@@ -193,49 +195,49 @@ func TestCustomOptions(t *testing.T) {
 	}
 
 	// Check string
-	str, ok := o.GetString("testString")
+	str, ok := logOption.GetString(o, "testString")
 	if !ok || str != "Hello" {
 		t.Errorf("Unexpected str value from option. Got value = %s", str)
 	}
 
 	// Check int
-	i, ok := o.GetInt("testInt")
+	i, ok := logOption.GetInt(o, "testInt")
 	if !ok || i != 98 {
 		t.Errorf("Unexpected int64 value from option. Got value = %d", i)
 	}
 
 	// Check int64
-	i64, ok := o.GetInt64("testInt64")
+	i64, ok := logOption.GetInt64(o, "testInt64")
 	if !ok || i64 != 99 {
 		t.Errorf("Unexpected int64 value from option. Got value = %d", i)
 	}
 
 	// Check time
-	dtt, ok := o.GetTime("testTime")
+	dtt, ok := logOption.GetTime(o, "testTime")
 	if !ok || dtt.Unix() != dt.Unix() {
 		t.Errorf("Unexpected int64 value from option. Got value = %s", dtt)
 	}
 
 	// Get empty int
-	_, ok = o.GetInt("noInt")
+	_, ok = logOption.GetInt(o, "noInt")
 	if ok {
 		t.Errorf("Unexpected value. int Value is supposed not to be set")
 	}
 
 	// Get empty int64
-	_, ok = o.GetInt64("noInt64")
+	_, ok = logOption.GetInt64(o, "noInt64")
 	if ok {
 		t.Errorf("Unexpected value. int64 Value is supposed not to be set")
 	}
 
 	// Get empty string
-	_, ok = o.GetString("noString")
+	_, ok = logOption.GetString(o, "noString")
 	if ok {
 		t.Errorf("Unexpected value. string Value is supposed not to be set")
 	}
 
 	// Get empty time
-	_, ok = o.GetTime("noTime")
+	_, ok = logOption.GetTime(o, "noTime")
 	if ok {
 		t.Errorf("Unexpected value. time.Time Value is supposed not to be set")
 	}
@@ -248,12 +250,12 @@ func TestCustomOptions(t *testing.T) {
 }
 
 func TestCustomPrinter(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(nlogger.LevelDebug, nil, "", 0, newCustomPrinter())
+	testLogger := nlogger.NewStdLogger(level.Debug, nil, "", 0, newCustomPrinter())
 	testLogger.Debug("This message is printed in json")
 }
 
 func newCustomPrinter() nlogger.StdPrinterFunc {
-	return func(writer *stdLog.Logger, outLevel nlogger.LogLevel, msg string, options *nlogger.Options) {
+	return func(writer *stdLog.Logger, outLevel level.LogLevel, msg string, options *logOption.Options) {
 		// Init json body
 		jsonBody := map[string]interface{}{
 			"timestamp": time.Now().Format(time.RFC3339),
