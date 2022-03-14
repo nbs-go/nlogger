@@ -111,7 +111,7 @@ func NewStdLogger(level level.LogLevel, printer Printer, args ...logOption.Sette
 	// Evaluate options
 	o := logOption.Evaluate(args)
 
-	// Get namespace\
+	// Get namespace
 	if namespace, ok := logOption.GetString(o, logOption.NamespaceKey); ok && namespace != "" {
 		l.namespace = namespace
 	}
