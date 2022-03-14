@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestFatal(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil)
+	testLogger := nlogger.NewStdLogger(nil, logOption.Level(level.Debug))
 	testLogger.Fatal("Testing FATAL with message only")
 	testLogger.Fatalf("Testing FATAL with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Fatal("Testing FATAL with options. Formatted Message: %s %s %s",
@@ -50,7 +50,7 @@ func TestFatal(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil)
+	testLogger := nlogger.NewStdLogger(nil, logOption.Level(level.Debug))
 	testLogger.Error("Testing ERROR with message only")
 	testLogger.Errorf("Testing ERROR with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Error("Testing ERROR with options. Formatted Message: %s %s %s",
@@ -62,7 +62,7 @@ func TestError(t *testing.T) {
 }
 
 func TestWarn(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil)
+	testLogger := nlogger.NewStdLogger(nil, logOption.Level(level.Debug))
 	testLogger.Warn("Testing WARN with message only")
 	testLogger.Warnf("Testing WARN with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Warn("Testing WARN with options. Formatted Message: %s %s %s",
@@ -72,7 +72,7 @@ func TestWarn(t *testing.T) {
 }
 
 func TestInfo(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil)
+	testLogger := nlogger.NewStdLogger(nil, logOption.Level(level.Debug))
 	testLogger.Info("Testing INFO with message only")
 	testLogger.Infof("Testing INFO with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Info("Testing INFO with options. Formatted Message: %s %s %s",
@@ -83,7 +83,7 @@ func TestInfo(t *testing.T) {
 }
 
 func TestDebug(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil)
+	testLogger := nlogger.NewStdLogger(nil, logOption.Level(level.Debug))
 	testLogger.Debug("Testing DEBUG with message only")
 	testLogger.Debugf("Testing DEBUG with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Debug("Testing DEBUG with options. Formatted Message: %s %s %s",
@@ -151,7 +151,7 @@ func TestRegisterEmptyLogger(t *testing.T) {
 }
 
 func TestChildLogger(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil, logOption.WithNamespace("parent"))
+	testLogger := nlogger.NewStdLogger(nil, logOption.Level(level.Debug))
 	testLogger.Debug("this is called from parent logger")
 
 	childLogger1 := testLogger.NewChild(logOption.WithNamespace("child"))
@@ -166,8 +166,8 @@ func TestChildLogger(t *testing.T) {
 }
 
 func TestNewStdLogPrinter_NilOut(t *testing.T) {
-	p := nlogger.NewStdLogPrinter("", nil, 0)
-	log := nlogger.NewStdLogger(level.Debug, p)
+	p := nlogger.NewStdLogPrinter(nil, 0)
+	log := nlogger.NewStdLogger(p, logOption.Level(level.Debug))
 	log.Debug("log message")
 }
 
@@ -255,15 +255,21 @@ func TestCustomOptions(t *testing.T) {
 }
 
 func TestCustomPrinter(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, newCustomPrinter())
+	testLogger := nlogger.NewStdLogger(newCustomPrinter(), logOption.Level(level.Debug))
 	testLogger.Debug("This message is printed in json")
+}
+
+func TestInheritNamespace(t *testing.T) {
+	parent := nlogger.NewStdLogger(nil, logOption.WithNamespace("namespace"), logOption.Level(level.Debug))
+	child := parent.NewChild()
+	child.Debug("this log must inherit parent namespace")
 }
 
 type customPrinter struct {
 	writer *json.Encoder
 }
 
-func (c *customPrinter) Print(outLevel level.LogLevel, msg string, options *logOption.Options) {
+func (c *customPrinter) Print(namespace string, outLevel level.LogLevel, msg string, options *logOption.Options) {
 	jsonBody := map[string]interface{}{
 		"timestamp": time.Now().Format(time.RFC3339),
 		"level":     outLevel,
@@ -275,6 +281,8 @@ func (c *customPrinter) Print(outLevel level.LogLevel, msg string, options *logO
 	} else {
 		jsonBody["message"] = msg
 	}
+
+	jsonBody["namespace"] = namespace
 
 	// Compose json string
 	err := c.writer.Encode(jsonBody)
@@ -289,17 +297,3 @@ func newCustomPrinter() *customPrinter {
 		writer: json.NewEncoder(os.Stdout),
 	}
 }
-
-//func newCustomPrinter() nlogger.StdPrinterFunc {
-//	return func(writer *stdLog.Logger, outLevel level.LogLevel, msg string, options *logOption.Options) {
-//		// Init json body
-//		jsonBody := map[string]interface{}{
-//			"timestamp": time.Now().Format(time.RFC3339),
-//			"level":     outLevel,
-//		}
-//
-
-//
-
-//	}
-//}
