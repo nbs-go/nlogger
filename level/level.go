@@ -36,3 +36,19 @@ func Parse(level string) LogLevel {
 		return Default
 	}
 }
+
+func String(l LogLevel) string {
+	switch l {
+	case Fatal:
+		return "Fatal"
+	case Error:
+		return "Error"
+	case Warn:
+		return "Warn"
+	case Info:
+		return "Info"
+	case Debug:
+		return "Debug"
+	}
+	return "Unknown"
+}
