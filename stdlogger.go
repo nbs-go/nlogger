@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	logContext "github.com/nbs-go/nlogger/v2/context"
 	"github.com/nbs-go/nlogger/v2/level"
 	"github.com/nbs-go/nlogger/v2/option"
 	"io"
@@ -19,16 +20,11 @@ var stdLevelPrefix = map[level.LogLevel]string{
 	level.Debug: "[DEBUG] ",
 }
 
-type StdPrinterFunc func(writer *stdLog.Logger, lv level.LogLevel, msg string, options *logOption.Options)
-
 type StdLogger struct {
 	level     level.LogLevel
-	writer    *stdLog.Logger
-	ioWriter  io.Writer
+	printer   Printer
 	namespace string
-	flags     int
 	ctx       context.Context
-	printerFn StdPrinterFunc
 }
 
 func (l *StdLogger) Fatal(msg string, args ...logOption.SetterFunc) {
@@ -81,7 +77,8 @@ func (l *StdLogger) NewChild(args ...logOption.SetterFunc) Logger {
 	}
 
 	// Init logger
-	cl := NewStdLogger(l.level, l.ioWriter, n, l.flags)
+	args = append(args, logOption.WithNamespace(l.namespace))
+	cl := NewStdLogger(l.level, l.printer, args...)
 
 	// Set context if available
 	if ctx := options.Context; ctx != nil {
@@ -97,50 +94,67 @@ func (l *StdLogger) print(outLevel level.LogLevel, msg string, options *logOptio
 		return
 	}
 
-	var fn StdPrinterFunc
-	if l.printerFn != nil {
-		fn = l.printerFn
-	} else {
-		fn = stdPrint
-	}
-
 	// Inject context if not set
 	if l.ctx != nil && options.Context == nil {
 		options.Context = l.ctx
 	}
 
-	fn(l.writer, outLevel, msg, options)
+	l.printer.Print(outLevel, msg, options)
 }
 
-func NewStdLogger(level level.LogLevel, w io.Writer, namespace string, flags int, args ...interface{}) *StdLogger {
-	// If writer is nil, set default writer to Stdout
-	if w == nil {
-		w = os.Stdout
-	}
-
-	var prefix string
-	if namespace != "" {
-		prefix = fmt.Sprintf("(%s) ", namespace)
-	}
-
+func NewStdLogger(level level.LogLevel, printer Printer, args ...logOption.SetterFunc) *StdLogger {
 	// Init standard logger instance
 	l := StdLogger{
-		level:     level,
-		writer:    stdLog.New(w, prefix, flags),
-		ioWriter:  w,
-		namespace: namespace,
+		level: level,
 	}
 
-	// Set optional arguments
-	if len(args) > 0 {
-		fn := args[0].(StdPrinterFunc)
-		l.printerFn = fn
+	// Evaluate options
+	o := logOption.Evaluate(args)
+
+	// Get namespace\
+	if namespace, ok := logOption.GetString(o, logOption.NamespaceKey); ok && namespace != "" {
+		l.namespace = namespace
+	}
+
+	// Get context
+	if ctx := o.Context; ctx != nil {
+		l.ctx = ctx
+	}
+
+	// Init printer if nil
+	if printer == nil {
+		l.printer = NewStdLogPrinter(l.namespace, os.Stdout, stdLog.LstdFlags)
+	} else {
+		l.printer = printer
 	}
 
 	return &l
 }
 
-func stdPrint(writer *stdLog.Logger, lv level.LogLevel, msg string, options *logOption.Options) {
+func NewStdLogPrinter(namespace string, out io.Writer, flag int) *stdLogPrinter {
+	var prefix string
+	if namespace != "" {
+		prefix = fmt.Sprintf("(%s) ", namespace)
+	}
+
+	// If writer is nil, set default writer to Stdout
+	if out == nil {
+		out = os.Stdout
+	}
+
+	// Init log.Logger
+	writer := stdLog.New(out, prefix, flag)
+
+	return &stdLogPrinter{writer: writer}
+}
+
+type stdLogPrinter struct {
+	writer *stdLog.Logger
+}
+
+func (s *stdLogPrinter) Print(lv level.LogLevel, msg string, options *logOption.Options) {
+	writer := s.writer
+
 	// Generate prefix
 	prefix := stdLevelPrefix[lv]
 
@@ -153,17 +167,12 @@ func stdPrint(writer *stdLog.Logger, lv level.LogLevel, msg string, options *log
 		writer.Printf("%s%s\n", prefix, msg)
 	}
 
-	// Get context
-	if ctx := options.Context; ctx != nil {
-		// Get request id
-		v := ctx.Value(RequestIdKey)
-		reqId, ok := v.(string)
-		if ok {
-			writer.Printf("  > Request ID: %s\n", reqId)
-		}
+	// Get request id
+	if reqId := logContext.GetRequestId(options.Context); reqId != "" {
+		writer.Printf("  > Request ID: %s\n", reqId)
 	}
 
-	// If error exists, then print error and its trace
+	// If error exists, then print error
 	logErr := logOption.GetError(options, logOption.ErrorKey)
 	if logErr != nil && lv <= level.Error {
 		writer.Printf("  > Error: %s\n", logErr)
