@@ -62,7 +62,8 @@ func Get() Logger {
 		namespace, _ := os.LookupEnv(EnvLogNamespace)
 
 		// Init standard logger
-		l := NewStdLogger(logLevel, NewStdLogPrinter(namespace, os.Stdout, stdLog.LstdFlags))
+		p := NewStdLogPrinter(os.Stdout, stdLog.LstdFlags)
+		l := NewStdLogger(p, logOption.Level(logLevel), logOption.WithNamespace(namespace))
 
 		// Register logger
 		Register(l)

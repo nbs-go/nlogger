@@ -71,14 +71,18 @@ func (l *StdLogger) NewChild(args ...logOption.SetterFunc) Logger {
 	options := logOption.Evaluate(args)
 
 	// Override namespace if option is set
-	n, _ := logOption.GetString(options, logOption.NamespaceKey)
-	if n == "" {
-		n = l.namespace
+	namespace, _ := logOption.GetString(options, logOption.NamespaceKey)
+
+	// If not set and parent has namespace, then use parent namespace
+	if namespace == "" && l.namespace != "" {
+		args = append(args, logOption.WithNamespace(l.namespace))
 	}
 
-	// Init logger
-	args = append(args, logOption.WithNamespace(l.namespace))
-	cl := NewStdLogger(l.level, l.printer, args...)
+	// Override level arguments
+	args = append(args, logOption.Level(l.level))
+
+	// Initiate new logger
+	cl := NewStdLogger(l.printer, args...)
 
 	// Set context if available
 	if ctx := options.Context; ctx != nil {
@@ -99,10 +103,10 @@ func (l *StdLogger) print(outLevel level.LogLevel, msg string, options *logOptio
 		options.Context = l.ctx
 	}
 
-	l.printer.Print(outLevel, msg, options)
+	l.printer.Print(l.namespace, outLevel, msg, options)
 }
 
-func NewStdLogger(level level.LogLevel, printer Printer, args ...logOption.SetterFunc) *StdLogger {
+func NewStdLogger(printer Printer, args ...logOption.SetterFunc) *StdLogger {
 	// Init standard logger instance
 	l := StdLogger{}
 
@@ -113,7 +117,7 @@ func NewStdLogger(level level.LogLevel, printer Printer, args ...logOption.Sette
 	l.level = o.Level
 
 	// Get namespace
-	if namespace, ok := logOption.GetString(o, logOption.NamespaceKey); ok && namespace != "" {
+	if namespace, _ := logOption.GetString(o, logOption.NamespaceKey); namespace != "" {
 		l.namespace = namespace
 	}
 
@@ -124,7 +128,7 @@ func NewStdLogger(level level.LogLevel, printer Printer, args ...logOption.Sette
 
 	// Init printer if nil
 	if printer == nil {
-		l.printer = NewStdLogPrinter(l.namespace, os.Stdout, stdLog.LstdFlags)
+		l.printer = NewStdLogPrinter(os.Stdout, stdLog.LstdFlags)
 	} else {
 		l.printer = printer
 	}
@@ -132,19 +136,14 @@ func NewStdLogger(level level.LogLevel, printer Printer, args ...logOption.Sette
 	return &l
 }
 
-func NewStdLogPrinter(namespace string, out io.Writer, flag int) *stdLogPrinter {
-	var prefix string
-	if namespace != "" {
-		prefix = fmt.Sprintf("(%s) ", namespace)
-	}
-
+func NewStdLogPrinter(out io.Writer, flag int) *stdLogPrinter {
 	// If writer is nil, set default writer to Stdout
 	if out == nil {
 		out = os.Stdout
 	}
 
 	// Init log.Logger
-	writer := stdLog.New(out, prefix, flag)
+	writer := stdLog.New(out, "", flag)
 
 	return &stdLogPrinter{writer: writer}
 }
@@ -153,11 +152,16 @@ type stdLogPrinter struct {
 	writer *stdLog.Logger
 }
 
-func (s *stdLogPrinter) Print(lv level.LogLevel, msg string, options *logOption.Options) {
+func (s *stdLogPrinter) Print(namespace string, lv level.LogLevel, msg string, options *logOption.Options) {
 	writer := s.writer
 
 	// Generate prefix
 	prefix := stdLevelPrefix[lv]
+
+	// Append namespace
+	if namespace != "" {
+		prefix = fmt.Sprintf("%s(%s) ", prefix, namespace)
+	}
 
 	// If options is existed
 	// If formatted arguments is available, then print as formatted
