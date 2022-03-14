@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v2.2.0
+
+- feat(stdlogger): Change StdPrinterFunc to Printer interface
+- feat(level): Add helper to get Level string
+- feat(context): Add logContext package
+
 ## v2.1.0
 
 - fix: Change module name, add prefix /v2
