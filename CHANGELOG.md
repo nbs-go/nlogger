@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v2.2.2
+
+- feat(stdlogger): Change namespace writing format
+- feat(stdlogger): Change level argument to optional
+
 ## v2.2.1
 
 - feat(stdlogger): Change env key for namespace
