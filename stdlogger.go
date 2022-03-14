@@ -104,12 +104,13 @@ func (l *StdLogger) print(outLevel level.LogLevel, msg string, options *logOptio
 
 func NewStdLogger(level level.LogLevel, printer Printer, args ...logOption.SetterFunc) *StdLogger {
 	// Init standard logger instance
-	l := StdLogger{
-		level: level,
-	}
+	l := StdLogger{}
 
 	// Evaluate options
 	o := logOption.Evaluate(args)
+
+	// Set level
+	l.level = o.Level
 
 	// Get namespace
 	if namespace, ok := logOption.GetString(o, logOption.NamespaceKey); ok && namespace != "" {

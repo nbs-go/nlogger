@@ -2,6 +2,7 @@ package logOption
 
 import (
 	"context"
+	"github.com/nbs-go/nlogger/v2/level"
 )
 
 type Options struct {
@@ -9,13 +10,17 @@ type Options struct {
 	Metadata map[string]interface{}
 	FmtArgs  []interface{}
 	Context  context.Context
+	Level    level.LogLevel
 }
 
 type SetterFunc = func(*Options)
 
 // NewOptions construct options
 func NewOptions() *Options {
-	return &Options{Values: make(map[string]interface{})}
+	return &Options{
+		Values: make(map[string]interface{}),
+		Level:  level.Default,
+	}
 }
 
 // NewFormatOptions construct options for formatting

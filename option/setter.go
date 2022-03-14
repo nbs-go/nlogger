@@ -2,6 +2,7 @@ package logOption
 
 import (
 	"context"
+	"github.com/nbs-go/nlogger/v2/level"
 )
 
 func AddMetadata(key string, val interface{}) SetterFunc {
@@ -40,5 +41,11 @@ func WithNamespace(n string) SetterFunc {
 func Context(ctx context.Context) SetterFunc {
 	return func(o *Options) {
 		o.Context = ctx
+	}
+}
+
+func Level(lv level.LogLevel) SetterFunc {
+	return func(o *Options) {
+		o.Level = lv
 	}
 }
