@@ -59,10 +59,10 @@ func Get() Logger {
 		logLevel := level.Parse(logLevelStr)
 
 		// Get logger prefix
-		logPrefix, _ := os.LookupEnv(EnvLogPrefix)
+		namespace, _ := os.LookupEnv(EnvLogNamespace)
 
 		// Init standard logger
-		l := NewStdLogger(logLevel, NewStdLogPrinter(logPrefix, os.Stdout, stdLog.LstdFlags), logOption.WithNamespace(logPrefix))
+		l := NewStdLogger(logLevel, NewStdLogPrinter(namespace, os.Stdout, stdLog.LstdFlags))
 
 		// Register logger
 		Register(l)
