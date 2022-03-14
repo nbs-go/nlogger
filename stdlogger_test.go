@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbs-go/nlogger/v2"
+	logContext "github.com/nbs-go/nlogger/v2/context"
 	"github.com/nbs-go/nlogger/v2/level"
 	logOption "github.com/nbs-go/nlogger/v2/option"
-	stdLog "log"
 	"os"
 	"testing"
 	"time"
@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestFatal(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil)
 	testLogger.Fatal("Testing FATAL with message only")
 	testLogger.Fatalf("Testing FATAL with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Fatal("Testing FATAL with options. Formatted Message: %s %s %s",
@@ -50,7 +50,7 @@ func TestFatal(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil)
 	testLogger.Error("Testing ERROR with message only")
 	testLogger.Errorf("Testing ERROR with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Error("Testing ERROR with options. Formatted Message: %s %s %s",
@@ -62,7 +62,7 @@ func TestError(t *testing.T) {
 }
 
 func TestWarn(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil)
 	testLogger.Warn("Testing WARN with message only")
 	testLogger.Warnf("Testing WARN with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Warn("Testing WARN with options. Formatted Message: %s %s %s",
@@ -72,7 +72,7 @@ func TestWarn(t *testing.T) {
 }
 
 func TestInfo(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil)
 	testLogger.Info("Testing INFO with message only")
 	testLogger.Infof("Testing INFO with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Info("Testing INFO with options. Formatted Message: %s %s %s",
@@ -83,7 +83,7 @@ func TestInfo(t *testing.T) {
 }
 
 func TestDebug(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil, "test", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil)
 	testLogger.Debug("Testing DEBUG with message only")
 	testLogger.Debugf("Testing DEBUG with formatted message: %s %s", "arg1", "arg2")
 	testLogger.Debug("Testing DEBUG with options. Formatted Message: %s %s %s",
@@ -151,7 +151,7 @@ func TestRegisterEmptyLogger(t *testing.T) {
 }
 
 func TestChildLogger(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil, "parent", stdLog.LstdFlags)
+	testLogger := nlogger.NewStdLogger(level.Debug, nil, logOption.WithNamespace("parent"))
 	testLogger.Debug("this is called from parent logger")
 
 	childLogger1 := testLogger.NewChild(logOption.WithNamespace("child"))
@@ -160,10 +160,15 @@ func TestChildLogger(t *testing.T) {
 	childLogger2 := nlogger.NewChild()
 	childLogger2.Debug("this is called from child logger without namespace")
 
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, nlogger.RequestIdKey, "b0a495f4-f919-4fc0-b3e2-95f83d0c4a04")
+	ctx := logContext.SetRequestId(context.Background(), "b0a495f4-f919-4fc0-b3e2-95f83d0c4a04")
 	ctxLogger := testLogger.NewChild(logOption.Context(ctx))
 	ctxLogger.Debugf("this log must contains request id")
+}
+
+func TestNewStdLogPrinter_NilOut(t *testing.T) {
+	p := nlogger.NewStdLogPrinter("", nil, 0)
+	log := nlogger.NewStdLogger(level.Debug, p)
+	log.Debug("log message")
 }
 
 func TestEvaluateOptions(t *testing.T) {
@@ -250,27 +255,51 @@ func TestCustomOptions(t *testing.T) {
 }
 
 func TestCustomPrinter(t *testing.T) {
-	testLogger := nlogger.NewStdLogger(level.Debug, nil, "", 0, newCustomPrinter())
+	testLogger := nlogger.NewStdLogger(level.Debug, newCustomPrinter())
 	testLogger.Debug("This message is printed in json")
 }
 
-func newCustomPrinter() nlogger.StdPrinterFunc {
-	return func(writer *stdLog.Logger, outLevel level.LogLevel, msg string, options *logOption.Options) {
-		// Init json body
-		jsonBody := map[string]interface{}{
-			"timestamp": time.Now().Format(time.RFC3339),
-			"level":     outLevel,
-		}
+type customPrinter struct {
+	writer *json.Encoder
+}
 
-		// Compose message
-		if len(options.FmtArgs) > 0 {
-			jsonBody["message"] = fmt.Sprintf(msg, options.FmtArgs...)
-		} else {
-			jsonBody["message"] = msg
-		}
+func (c *customPrinter) Print(outLevel level.LogLevel, msg string, options *logOption.Options) {
+	jsonBody := map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC3339),
+		"level":     outLevel,
+	}
 
-		// Compose json string
-		jsonStr, _ := json.Marshal(jsonBody)
-		writer.Printf("%s\n", jsonStr)
+	// Compose message
+	if len(options.FmtArgs) > 0 {
+		jsonBody["message"] = fmt.Sprintf(msg, options.FmtArgs...)
+	} else {
+		jsonBody["message"] = msg
+	}
+
+	// Compose json string
+	err := c.writer.Encode(jsonBody)
+	if err != nil {
+		fmt.Printf(`"{"level": 3, "levelStr": "%s", "message": "failed to write json body", "error": "%s"}"`,
+			level.String(level.Error), err.Error())
 	}
 }
+
+func newCustomPrinter() *customPrinter {
+	return &customPrinter{
+		writer: json.NewEncoder(os.Stdout),
+	}
+}
+
+//func newCustomPrinter() nlogger.StdPrinterFunc {
+//	return func(writer *stdLog.Logger, outLevel level.LogLevel, msg string, options *logOption.Options) {
+//		// Init json body
+//		jsonBody := map[string]interface{}{
+//			"timestamp": time.Now().Format(time.RFC3339),
+//			"level":     outLevel,
+//		}
+//
+
+//
+
+//	}
+//}
