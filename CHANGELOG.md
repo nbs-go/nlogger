@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v2.2.1
+
+- feat(stdlogger): Change env key for namespace
+
 ## v2.2.0
 
 - feat(stdlogger): Change StdPrinterFunc to Printer interface
