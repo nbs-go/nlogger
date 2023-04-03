@@ -2,6 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/nbs-go/nlogger)](https://goreportcard.com/report/github.com/nbs-go/nlogger)
 [![GitHub license](https://img.shields.io/github/license/nbs-go/nlogger)](https://github.com/nbs-go/nlogger/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/nbs-go/nlogger/branch/master/graph/badge.svg?token=ZPPD4U6JCE)](https://codecov.io/gh/nbs-go/nlogger)
 
 A Logger interface for Golang. Inspired by `database/sql` package. Batteries included.
 
