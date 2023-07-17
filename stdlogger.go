@@ -18,6 +18,7 @@ var stdLevelPrefix = map[level.LogLevel]string{
 	level.Warn:  " [WARN] ",
 	level.Info:  " [INFO] ",
 	level.Debug: "[DEBUG] ",
+	level.Trace: "[TRACE] ",
 }
 
 type StdLogger struct {
@@ -65,6 +66,14 @@ func (l *StdLogger) Debug(msg string, args ...logOption.SetterFunc) {
 
 func (l *StdLogger) Debugf(format string, args ...interface{}) {
 	l.print(level.Debug, format, logOption.NewFormatOptions(args...))
+}
+
+func (l *StdLogger) Trace(msg string, args ...logOption.SetterFunc) {
+	l.print(level.Trace, msg, logOption.Evaluate(args))
+}
+
+func (l *StdLogger) Tracef(format string, args ...interface{}) {
+	l.print(level.Trace, format, logOption.NewFormatOptions(args...))
 }
 
 func (l *StdLogger) NewChild(args ...logOption.SetterFunc) Logger {

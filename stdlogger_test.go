@@ -94,6 +94,18 @@ func TestDebug(t *testing.T) {
 		logOption.Error(errors.New("this is error")))
 }
 
+func TestTrace(t *testing.T) {
+	testLogger := nlogger.NewStdLogger(nil, logOption.Level(level.Trace))
+	testLogger.Trace("Testing TRACE with message only")
+	testLogger.Tracef("Testing TRACE with formatted message: %s %s", "arg1", "arg2")
+	testLogger.Trace("Testing TRACE with options. Formatted Message: %s %s %s",
+		logOption.AddMetadata("key", "value"),
+		logOption.Format("arg1", "arg2", "arg3"),
+	)
+	testLogger.Trace("Testing TRACE with error only",
+		logOption.Error(errors.New("this is error")))
+}
+
 func TestParseLevel(t *testing.T) {
 	testParseLevel(t, "0", level.Fatal)
 	testParseLevel(t, "panic", level.Fatal)
@@ -118,6 +130,10 @@ func TestParseLevel(t *testing.T) {
 	testParseLevel(t, "7", level.Debug)
 	testParseLevel(t, "debug", level.Debug)
 	testParseLevel(t, "DEBUG", level.Debug)
+
+	testParseLevel(t, "8", level.Trace)
+	testParseLevel(t, "trace", level.Trace)
+	testParseLevel(t, "TRACE", level.Trace)
 }
 
 func testParseLevel(t *testing.T, levelStr string, expectedLevel level.LogLevel) {
