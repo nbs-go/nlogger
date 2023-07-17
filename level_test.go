@@ -45,6 +45,14 @@ func TestString_Debug(t *testing.T) {
 	}
 }
 
+func TestString_Trace(t *testing.T) {
+	exp := "Trace"
+	str := level.String(level.Trace)
+	if str != exp {
+		t.Errorf("unexpected %s string value = %s", exp, str)
+	}
+}
+
 func TestString_Unknown(t *testing.T) {
 	exp := "Unknown"
 	str := level.String(-1)

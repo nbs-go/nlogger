@@ -14,7 +14,7 @@ const (
 	_ // LevelNotice
 	Info
 	Debug
-	_ // LevelTrace
+	Trace // LevelTrace
 )
 
 const (
@@ -32,6 +32,8 @@ func Parse(level string) LogLevel {
 		return Info
 	case "debug", "7":
 		return Debug
+	case "trace", "8":
+		return Trace
 	default:
 		return Default
 	}
@@ -49,6 +51,8 @@ func String(l LogLevel) string {
 		return "Info"
 	case Debug:
 		return "Debug"
+	case Trace:
+		return "Trace"
 	}
 	return "Unknown"
 }

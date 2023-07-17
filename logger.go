@@ -41,6 +41,12 @@ type Logger interface {
 	// Debugf must write a formatted message in DEBUG level.
 	Debugf(format string, args ...interface{})
 
+	// Trace must write a message in TRACE level.
+	Trace(msg string, options ...logOption.SetterFunc)
+
+	// Tracef must write a formatted message in TRACE level.
+	Tracef(format string, args ...interface{})
+
 	// NewChild must create a child logger and inherit level, writer and other flags
 	// only option such as namespace could be overridden
 	NewChild(args ...logOption.SetterFunc) Logger
