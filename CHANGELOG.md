@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v2.3.0
+
+- fix: Change logger init message to TRACE level
+- feat(stdlogger): Add TRACE log implementation
+- feat: Introduce TRACE log level to logging interface
+
 ## v2.2.2
 
 - feat(stdlogger): Change namespace writing format
