@@ -73,7 +73,7 @@ func Get() Logger {
 
 		// Register logger
 		Register(l)
-		log.Debug("No logger found. StdLogger initiated")
+		log.Trace("No logger found. StdLogger initiated")
 	}
 	return log
 }
