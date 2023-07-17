@@ -6,22 +6,23 @@
 
 A Logger interface for Golang. Inspired by `database/sql` package. Batteries included.
 
-## Installing
+## Install
 
 ```shell
 go get github.com/nbs-go/nlogger
 ```
 
-## Example
+## Usage
 
 ```
 package main
 
 import (
-  "github.com/nbs-go/nlogger"
-  
   // Register a logger implementation, just do it once in the main package
-  // _ "github.com/nbs-go/nlogrus"
+  // Make sure to place this import at the first line, in the first files of main package (ordered by alphabet)
+  _ "github.com/nbs-go/nlogger-json"
+
+  "github.com/nbs-go/nlogger"
 )
 
 func main() {
